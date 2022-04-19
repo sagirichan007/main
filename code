@@ -1,0 +1,71 @@
+<?php
+function koneksidb()
+{
+ // sesuaikan dengan konfigurasi anda
+ $host="localhost";
+ $user="root";
+ $pass="";
+ mysql_connect($host,$user,$pass) or die("Error Koneksi DB ".mysql_error());
+ mysql_select_db("blog") or die("Salah database. ".mysql_error());
+}
+?>
+
+<?php
+function judul_seo($string)
+{
+ $c = array (' ');
+ $d = array ('-','/','\\',',','.','#',':',';','\'','"','[',']','{','}',')','(','|','`','~','!','@','%','$','^','&','*','=','?','+');
+ $string = str_replace($d, '', $string); // Hilangkan karakter yang telah disebutkan di array $d
+ $string = strtolower(str_replace($c, '-', $string)); // Ganti spasi dengan tanda - dan ubah hurufnya menjadi kecil semua
+ return $string;
+}
+?>
+
+<?php
+include "koneksi.php";
+include "judul_seo.php";
+if ($_POST['judul'])
+{
+  koneksidb();
+  $judul    = $_POST['judul'];
+  $judulseo = judul_seo($judul);
+  $isi      = $_POST['isiberita'];
+  //insert ke database
+  //kita berikan id_berita dengan angka 1235 agar sesuai dengan artikel di atas hehehe
+  //untuk kasus anda lebih baik id_berita di jadikan primary key dan auto increment
+  $insert = mysql_query("insert into berita(id_berita,judul_berita,judul_seo,isi_berita) values('1235','$judul','$judulseo','$isi')") or die(mysql_error());
+  if ($insert)
+  {
+    echo "insert berhasil";
+  }
+}
+?>
+<form method="post" action="">
+<p>Judul : <input type="text" name="judul" size="100"></p>
+<p>Isi Berita : <textarea name="isiberita"></textarea></p>
+<p><input type="submit"></p>
+</form>
+
+<?php
+include "koneksi.php";
+koneksidb();
+$sql = mysql_query("select * from berita");
+while ($row = mysql_fetch_array($sql))
+{
+    ?>
+        <a href="berita/<?php echo $row['judul_seo']; ?>.html" target="_blank"><?php echo $row['judul_berita']; ?></a>
+    <?php
+}
+?>
+
+<?php
+include "koneksi.php";
+koneksidb();
+$id = $_GET['id'];
+$sql = mysql_query("select * from berita where id_berita='$id' or judul_seo='$id'");
+while ($row = mysql_fetch_array($sql))
+{
+  echo "<h1>".$row['judul_berita']."</h1>";
+  echo "<p>".$row['isi_berita']."</p>";
+}
+?>
